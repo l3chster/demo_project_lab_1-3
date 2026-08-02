@@ -1,0 +1,740 @@
+{
+  "datasets": [
+    {
+      "name": "46b5f4f9",
+      "displayName": "gold_last_24h",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.gold_last_24h",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          }
+        ]
+      }
+    },
+    {
+      "name": "f1deaa01",
+      "displayName": "gold_last_7_days",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.gold_last_7_days",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ed6c615e",
+      "displayName": "gold_city_profiles",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.gold_city_profiles",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          }
+        ]
+      }
+    }
+  ],
+  "pages": [
+    {
+      "name": "85108d6b",
+      "displayName": "Last 24 hours",
+      "layout": [
+        {
+          "widget": {
+            "name": "d14fb27e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "46b5f4f9",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "event_time",
+                      "expression": "`event_time`"
+                    },
+                    {
+                      "name": "temperature",
+                      "expression": "`temperature`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "event_time",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "temperature",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "ecc472f4",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "46b5f4f9",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "max(wind_speed)",
+                      "expression": "MAX(`wind_speed`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "max(wind_speed)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "3e8e3f2c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "46b5f4f9",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "event_time",
+                      "expression": "`event_time`"
+                    },
+                    {
+                      "name": "temperature",
+                      "expression": "`temperature`"
+                    },
+                    {
+                      "name": "wind_speed",
+                      "expression": "`wind_speed`"
+                    },
+                    {
+                      "name": "wind_direction",
+                      "expression": "`wind_direction`"
+                    },
+                    {
+                      "name": "air_quality",
+                      "expression": "`air_quality`"
+                    },
+                    {
+                      "name": "pm10",
+                      "expression": "`pm10`"
+                    },
+                    {
+                      "name": "pm2_5",
+                      "expression": "`pm2_5`"
+                    }
+                  ],
+                  "disaggregated": true,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "`event_time`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "city"
+                  },
+                  {
+                    "fieldName": "event_time"
+                  },
+                  {
+                    "fieldName": "temperature"
+                  },
+                  {
+                    "fieldName": "wind_speed"
+                  },
+                  {
+                    "fieldName": "wind_direction"
+                  },
+                  {
+                    "fieldName": "air_quality"
+                  },
+                  {
+                    "fieldName": "pm10"
+                  },
+                  {
+                    "fieldName": "pm2_5"
+                  }
+                ],
+                "rowOrder": [
+                  {
+                    "by": "column-reversed",
+                    "field": {
+                      "index": 1
+                    }
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "81be12ba",
+      "displayName": "Last 7 days",
+      "layout": [
+        {
+          "widget": {
+            "name": "772ee947",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f1deaa01",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "monthly(event_date)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `event_date`)"
+                    },
+                    {
+                      "name": "avg_temp",
+                      "expression": "`avg_temp`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(event_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg_temp",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "d3c8132d",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f1deaa01",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "monthly(event_date)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `event_date`)"
+                    },
+                    {
+                      "name": "avg_air_quality",
+                      "expression": "`avg_air_quality`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "area",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(event_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg_air_quality",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "430e86b9",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "f1deaa01",
+                  "fields": [
+                    {
+                      "name": "monthly(event_date)",
+                      "expression": "DATE_TRUNC(\"MONTH\", `event_date`)"
+                    },
+                    {
+                      "name": "min_temp",
+                      "expression": "`min_temp`"
+                    },
+                    {
+                      "name": "max_temp",
+                      "expression": "`max_temp`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "monthly(event_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "min_temp"
+                    },
+                    {
+                      "fieldName": "max_temp"
+                    }
+                  ]
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 12,
+            "height": 6
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "1691b9a1",
+      "displayName": "City profiles",
+      "layout": [
+        {
+          "widget": {
+            "name": "b35eccd7",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ed6c615e",
+                  "fields": [
+                    {
+                      "name": "sum(total_measurements_recorded)",
+                      "expression": "SUM(`total_measurements_recorded`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(total_measurements_recorded)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "60d2c640",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ed6c615e",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "all_time_high_temp",
+                      "expression": "`all_time_high_temp`"
+                    },
+                    {
+                      "name": "all_time_low_temp",
+                      "expression": "`all_time_low_temp`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "fields": [
+                    {
+                      "fieldName": "all_time_high_temp"
+                    },
+                    {
+                      "fieldName": "all_time_low_temp"
+                    }
+                  ]
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "d3327f59",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ed6c615e",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "historical_avg_temp",
+                      "expression": "`historical_avg_temp`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": false
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "historical_avg_temp",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 5,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "16606779",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ed6c615e",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "total_measurements_recorded",
+                      "expression": "`total_measurements_recorded`"
+                    },
+                    {
+                      "name": "data_collected_since",
+                      "expression": "`data_collected_since`"
+                    },
+                    {
+                      "name": "historical_avg_temp",
+                      "expression": "`historical_avg_temp`"
+                    },
+                    {
+                      "name": "all_time_high_temp",
+                      "expression": "`all_time_high_temp`"
+                    },
+                    {
+                      "name": "all_time_low_temp",
+                      "expression": "`all_time_low_temp`"
+                    },
+                    {
+                      "name": "measure(count)",
+                      "expression": "MEASURE(`count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "city"
+                  },
+                  {
+                    "fieldName": "total_measurements_recorded"
+                  },
+                  {
+                    "fieldName": "data_collected_since"
+                  },
+                  {
+                    "fieldName": "historical_avg_temp"
+                  },
+                  {
+                    "fieldName": "all_time_high_temp"
+                  },
+                  {
+                    "fieldName": "all_time_low_temp"
+                  },
+                  {
+                    "fieldName": "measure(count)"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 0,
+            "width": 9,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "widgetHeaderAlignment": "ALIGNMENT_UNSPECIFIED"
+    },
+    "applyModeEnabled": false
+  }
+}
