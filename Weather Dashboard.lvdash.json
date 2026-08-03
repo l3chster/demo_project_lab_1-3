@@ -62,6 +62,49 @@
           }
         ]
       }
+    },
+    {
+      "name": "c4339c74",
+      "displayName": "gold_ly_agg_measurements",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.gold_ly_agg_measurements",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          }
+        ]
+      }
+    },
+    {
+      "name": "rainfall_snowfall_unpivot",
+      "displayName": "rainfall_snowfall_heatmap",
+      "queryLines": [
+        "SELECT\n",
+        "  city,\n",
+        "  'Rainfall' AS metric_type,\n",
+        "  total_rain AS value\n",
+        "FROM\n",
+        "  dbr_dev.weather_gold.gold_ly_agg_measurements\n",
+        "UNION ALL\n",
+        "SELECT\n",
+        "  city,\n",
+        "  'Snowfall' AS metric_type,\n",
+        "  total_snowfall AS value\n",
+        "FROM\n",
+        "  dbr_dev.weather_gold.gold_ly_agg_measurements\n",
+        "ORDER BY\n",
+        "  city,\n",
+        "  metric_type"
+      ]
     }
   ],
   "pages": [
@@ -71,7 +114,7 @@
       "layout": [
         {
           "widget": {
-            "name": "d14fb27e",
+            "name": "temperatue",
             "queries": [
               {
                 "name": "main_query",
@@ -97,6 +140,10 @@
             ],
             "spec": {
               "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Temperature Trend by City"
+              },
               "widgetType": "line",
               "encodings": {
                 "x": {
@@ -132,7 +179,7 @@
         },
         {
           "widget": {
-            "name": "ecc472f4",
+            "name": "maximum-wind-speed-comparison",
             "queries": [
               {
                 "name": "main_query",
@@ -154,6 +201,10 @@
             ],
             "spec": {
               "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Maximum Wind Speed Comparison"
+              },
               "widgetType": "bar",
               "encodings": {
                 "x": {
@@ -183,7 +234,7 @@
         },
         {
           "widget": {
-            "name": "3e8e3f2c",
+            "name": "most-recent-weather-logs",
             "queries": [
               {
                 "name": "main_query",
@@ -235,6 +286,10 @@
             ],
             "spec": {
               "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Most Recent Weather Logs"
+              },
               "widgetType": "table",
               "encodings": {
                 "columns": [
@@ -294,7 +349,7 @@
       "layout": [
         {
           "widget": {
-            "name": "772ee947",
+            "name": "7-day-average-temperature-trend-city",
             "queries": [
               {
                 "name": "main_query",
@@ -306,8 +361,8 @@
                       "expression": "`city`"
                     },
                     {
-                      "name": "monthly(event_date)",
-                      "expression": "DATE_TRUNC(\"MONTH\", `event_date`)"
+                      "name": "event_date",
+                      "expression": "`event_date`"
                     },
                     {
                       "name": "avg_temp",
@@ -320,10 +375,14 @@
             ],
             "spec": {
               "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "7‑Day Average Temperature Trend by City"
+              },
               "widgetType": "line",
               "encodings": {
                 "x": {
-                  "fieldName": "monthly(event_date)",
+                  "fieldName": "event_date",
                   "scale": {
                     "type": "temporal"
                   }
@@ -355,7 +414,7 @@
         },
         {
           "widget": {
-            "name": "d3c8132d",
+            "name": "air-quality-changes-last-7-days",
             "queries": [
               {
                 "name": "main_query",
@@ -367,8 +426,8 @@
                       "expression": "`city`"
                     },
                     {
-                      "name": "monthly(event_date)",
-                      "expression": "DATE_TRUNC(\"MONTH\", `event_date`)"
+                      "name": "event_date",
+                      "expression": "`event_date`"
                     },
                     {
                       "name": "avg_air_quality",
@@ -381,10 +440,14 @@
             ],
             "spec": {
               "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Air Quality Changes Over the Last 7 Days"
+              },
               "widgetType": "area",
               "encodings": {
                 "x": {
-                  "fieldName": "monthly(event_date)",
+                  "fieldName": "event_date",
                   "scale": {
                     "type": "temporal"
                   }
@@ -416,7 +479,7 @@
         },
         {
           "widget": {
-            "name": "430e86b9",
+            "name": "daily-temperature-amplitude-min-vs-max",
             "queries": [
               {
                 "name": "main_query",
@@ -424,8 +487,8 @@
                   "datasetName": "f1deaa01",
                   "fields": [
                     {
-                      "name": "monthly(event_date)",
-                      "expression": "DATE_TRUNC(\"MONTH\", `event_date`)"
+                      "name": "event_date",
+                      "expression": "`event_date`"
                     },
                     {
                       "name": "min_temp",
@@ -442,10 +505,14 @@
             ],
             "spec": {
               "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Temperature Amplitude (Min vs Max)"
+              },
               "widgetType": "bar",
               "encodings": {
                 "x": {
-                  "fieldName": "monthly(event_date)",
+                  "fieldName": "event_date",
                   "scale": {
                     "type": "temporal"
                   }
@@ -486,7 +553,7 @@
       "layout": [
         {
           "widget": {
-            "name": "b35eccd7",
+            "name": "total-processed-measurements",
             "queries": [
               {
                 "name": "main_query",
@@ -504,6 +571,10 @@
             ],
             "spec": {
               "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "Total Number of Processed Measurements"
+              },
               "widgetType": "counter",
               "encodings": {
                 "value": {
@@ -524,7 +595,7 @@
         },
         {
           "widget": {
-            "name": "60d2c640",
+            "name": "historical-weather-extremes-city",
             "queries": [
               {
                 "name": "main_query",
@@ -536,12 +607,12 @@
                       "expression": "`city`"
                     },
                     {
-                      "name": "all_time_high_temp",
-                      "expression": "`all_time_high_temp`"
-                    },
-                    {
                       "name": "all_time_low_temp",
                       "expression": "`all_time_low_temp`"
+                    },
+                    {
+                      "name": "all_time_high_temp",
+                      "expression": "`all_time_high_temp`"
                     }
                   ],
                   "disaggregated": true
@@ -550,6 +621,10 @@
             ],
             "spec": {
               "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Historical Weather Extremes by City"
+              },
               "widgetType": "bar",
               "encodings": {
                 "x": {
@@ -564,10 +639,10 @@
                   },
                   "fields": [
                     {
-                      "fieldName": "all_time_high_temp"
+                      "fieldName": "all_time_low_temp"
                     },
                     {
-                      "fieldName": "all_time_low_temp"
+                      "fieldName": "all_time_high_temp"
                     }
                   ]
                 }
@@ -586,7 +661,7 @@
         },
         {
           "widget": {
-            "name": "d3327f59",
+            "name": "historical-average-temperature-city",
             "queries": [
               {
                 "name": "main_query",
@@ -609,7 +684,8 @@
             "spec": {
               "version": 3,
               "frame": {
-                "showTitle": false
+                "showTitle": true,
+                "title": "Historical Average Temperature by City"
               },
               "widgetType": "bar",
               "encodings": {
@@ -646,7 +722,7 @@
         },
         {
           "widget": {
-            "name": "16606779",
+            "name": "city-reference-overview",
             "queries": [
               {
                 "name": "main_query",
@@ -676,18 +752,18 @@
                     {
                       "name": "all_time_low_temp",
                       "expression": "`all_time_low_temp`"
-                    },
-                    {
-                      "name": "measure(count)",
-                      "expression": "MEASURE(`count`)"
                     }
                   ],
-                  "disaggregated": false
+                  "disaggregated": true
                 }
               }
             ],
             "spec": {
               "version": 2,
+              "frame": {
+                "showTitle": true,
+                "title": "City Reference Overview"
+              },
               "widgetType": "table",
               "encodings": {
                 "columns": [
@@ -708,9 +784,6 @@
                   },
                   {
                     "fieldName": "all_time_low_temp"
-                  },
-                  {
-                    "fieldName": "measure(count)"
                   }
                 ]
               },
@@ -723,6 +796,266 @@
             "x": 3,
             "y": 0,
             "width": 9,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    },
+    {
+      "name": "7d218652",
+      "displayName": "Accumulated rainfall (last year))",
+      "layout": [
+        {
+          "widget": {
+            "name": "total",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c4339c74",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "total_rain",
+                      "expression": "`total_rain`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Total Rainfall by City"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "total_rain",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "total-snowfall-by-city-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c4339c74",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "sum(total_snowfall)",
+                      "expression": "SUM(`total_snowfall`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Total Snowfall by City"
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(total_snowfall)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "c1ed900e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "c4339c74",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "total_rain",
+                      "expression": "`total_rain`"
+                    },
+                    {
+                      "name": "total_snowfall",
+                      "expression": "`total_snowfall`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "city"
+                  },
+                  {
+                    "fieldName": "total_rain"
+                  },
+                  {
+                    "fieldName": "total_snowfall"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 6,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "64a35a56",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "rainfall_snowfall_unpivot",
+                  "fields": [
+                    {
+                      "name": "value",
+                      "expression": "`value`"
+                    },
+                    {
+                      "name": "metric_type",
+                      "expression": "`metric_type`"
+                    },
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "title": "Rainfall & Snowfall Heatmap by City"
+              },
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "metric_type",
+                  "axis": {
+                    "title": "Metric"
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "city",
+                  "axis": {
+                    "title": "City"
+                  },
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "color": {
+                  "fieldName": "value",
+                  "displayName": "Amount (mm)",
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "scheme",
+                      "scheme": "blues"
+                    }
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 6,
+            "width": 6,
             "height": 5
           }
         }
