@@ -805,7 +805,7 @@
     },
     {
       "name": "7d218652",
-      "displayName": "Accumulated rainfall (last year))",
+      "displayName": "Accumulated rainfall (last year)",
       "layout": [
         {
           "widget": {
@@ -882,11 +882,11 @@
                       "expression": "`city`"
                     },
                     {
-                      "name": "sum(total_snowfall)",
-                      "expression": "SUM(`total_snowfall`)"
+                      "name": "total_snowfall",
+                      "expression": "`total_snowfall`"
                     }
                   ],
-                  "disaggregated": false
+                  "disaggregated": true
                 }
               }
             ],
@@ -905,7 +905,7 @@
                   }
                 },
                 "y": {
-                  "fieldName": "sum(total_snowfall)",
+                  "fieldName": "total_snowfall",
                   "scale": {
                     "type": "quantitative"
                   }
