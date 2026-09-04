@@ -62,6 +62,282 @@
           }
         ]
       }
+    },
+    {
+      "name": "89b68bcb",
+      "displayName": "dim_city",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.dim_city",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          }
+        ]
+      }
+    },
+    {
+      "name": "469b385a",
+      "displayName": "dim_date",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.dim_date",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          }
+        ]
+      }
+    },
+    {
+      "name": "df801194",
+      "displayName": "fact_rainfall",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.fact_rainfall",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          },
+          {
+            "name": "rainy_records_count",
+            "expr": "COUNT_IF(rain_sum > 0)",
+            "displayName": "Rainy Records Count",
+            "comment": "Count of records where rain_sum is greater than 0"
+          },
+          {
+            "name": "snowy_records_count",
+            "expr": "COUNT_IF(snowfall_sum > 0)",
+            "displayName": "Snowy Records Count",
+            "comment": "Count of records where snowfall_sum is greater than 0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "1161ada3",
+      "displayName": "fact_weather",
+      "config": {
+        "version": "1.1",
+        "source": "dbr_dev.weather_gold.fact_weather",
+        "dimensions": [
+          {
+            "expr": "source.*"
+          }
+        ],
+        "measures": [
+          {
+            "name": "count",
+            "expr": "COUNT(*)",
+            "comment": "Represents the total number of rows in the dataset. Use this measure to count all",
+            "displayName": "Count"
+          },
+          {
+            "name": "hot_days_count",
+            "expr": "COUNT_IF(temperature > 20)",
+            "displayName": "Count of Records with Hot Days",
+            "comment": "Count of records where temperature is above 20 degrees"
+          },
+          {
+            "name": "mild_days_count",
+            "expr": "COUNT_IF(temperature >= 10 AND temperature <= 20)",
+            "displayName": "Count of Records with Mild Days",
+            "comment": "Count of records where temperature is between 10 and 20 degrees"
+          },
+          {
+            "name": "cold_days_count",
+            "expr": "COUNT_IF(temperature < 10)",
+            "displayName": "Count of Records with Cold Days",
+            "comment": "Count of records where temperature is below 10 degrees"
+          }
+        ]
+      }
+    },
+    {
+      "name": "city_avg_rainfall",
+      "displayName": "City Avg Rainfall",
+      "queryLines": [
+        "SELECT\n",
+        "  d.city,\n",
+        "  d.lat,\n",
+        "  d.lon,\n",
+        "  AVG(f.rain_sum) AS avg_rain_sum,\n",
+        "  SUM(f.rain_sum) AS total_rain_sum\n",
+        "FROM\n",
+        "  dbr_dev.weather_gold.dim_city d\n",
+        "    JOIN dbr_dev.weather_gold.fact_rainfall f\n",
+        "      ON d.city_id = f.city_id\n",
+        "GROUP BY\n",
+        "  d.city,\n",
+        "  d.lat,\n",
+        "  d.lon"
+      ]
+    },
+    {
+      "name": "city_hottest_days",
+      "displayName": "City Hottest Days",
+      "queryLines": [
+        "WITH daily_winners AS (\n",
+        "  SELECT\n",
+        "    DATE_TRUNC('DAY', f.date_id) AS day,\n",
+        "    d.city,\n",
+        "    ROW_NUMBER() OVER (\n",
+        "        PARTITION BY DATE_TRUNC('DAY', f.date_id)\n",
+        "        ORDER BY MAX(f.temperature) DESC\n",
+        "      ) AS rn\n",
+        "  FROM\n",
+        "    dbr_dev.weather_gold.fact_weather f\n",
+        "      JOIN dbr_dev.weather_gold.dim_city d\n",
+        "        ON f.city_id = d.city_id\n",
+        "  GROUP BY\n",
+        "    DATE_TRUNC('DAY', f.date_id),\n",
+        "    d.city\n",
+        "),\n",
+        "city_wins AS (\n",
+        "  SELECT\n",
+        "    city,\n",
+        "    COUNT(*) AS win_count\n",
+        "  FROM\n",
+        "    daily_winners\n",
+        "  WHERE\n",
+        "    rn = 1\n",
+        "  GROUP BY\n",
+        "    city\n",
+        "),\n",
+        "total AS (\n",
+        "  SELECT\n",
+        "    SUM(win_count) AS total_wins\n",
+        "  FROM\n",
+        "    city_wins\n",
+        ")\n",
+        "SELECT\n",
+        "  cw.city,\n",
+        "  cw.win_count,\n",
+        "  ROUND(cw.win_count * 100.0 / t.total_wins, 1) AS win_percentage\n",
+        "FROM\n",
+        "  city_wins cw CROSS JOIN total t\n",
+        "ORDER BY\n",
+        "  win_percentage DESC"
+      ]
+    },
+    {
+      "name": "daily_max_temp",
+      "displayName": "Daily Max Temperature",
+      "queryLines": [
+        "WITH daily_ranked AS (\n",
+        "  SELECT\n",
+        "    DATE_TRUNC('DAY', f.date_id) AS day,\n",
+        "    d.city,\n",
+        "    MAX(f.temperature) AS max_temperature,\n",
+        "    ROW_NUMBER() OVER (\n",
+        "        PARTITION BY DATE_TRUNC('DAY', f.date_id)\n",
+        "        ORDER BY MAX(f.temperature) DESC\n",
+        "      ) AS rn\n",
+        "  FROM\n",
+        "    dbr_dev.weather_gold.fact_weather f\n",
+        "      JOIN dbr_dev.weather_gold.dim_city d\n",
+        "        ON f.city_id = d.city_id\n",
+        "  GROUP BY\n",
+        "    DATE_TRUNC('DAY', f.date_id),\n",
+        "    d.city\n",
+        ")\n",
+        "SELECT\n",
+        "  day,\n",
+        "  city,\n",
+        "  max_temperature\n",
+        "FROM\n",
+        "  daily_ranked\n",
+        "WHERE\n",
+        "  rn = 1\n",
+        "ORDER BY\n",
+        "  day"
+      ]
+    }
+  ],
+  "relationshipGraphs": [
+    {
+      "sources": [
+        {
+          "name": "gold_last_24h",
+          "datasetName": "46b5f4f9"
+        },
+        {
+          "name": "gold_last_7_days",
+          "datasetName": "f1deaa01"
+        },
+        {
+          "name": "gold_city_profiles",
+          "datasetName": "ed6c615e"
+        },
+        {
+          "name": "dim_city",
+          "datasetName": "89b68bcb"
+        },
+        {
+          "name": "dim_date",
+          "datasetName": "469b385a"
+        },
+        {
+          "name": "fact_rainfall",
+          "datasetName": "df801194"
+        },
+        {
+          "name": "fact_weather",
+          "datasetName": "1161ada3"
+        },
+        {
+          "name": "City_Avg_Rainfall",
+          "datasetName": "city_avg_rainfall"
+        },
+        {
+          "name": "City_Hottest_Days",
+          "datasetName": "city_hottest_days"
+        },
+        {
+          "name": "Daily_Max_Temperature",
+          "datasetName": "daily_max_temp"
+        }
+      ],
+      "relationships": [
+        {
+          "name": "relationship_0",
+          "from": "fact_rainfall",
+          "to": "dim_city",
+          "on": "`fact_rainfall`.`city_id` = `dim_city`.`city_id`",
+          "cardinality": "CARDINALITY_MANY_TO_ONE"
+        },
+        {
+          "name": "relationship_1",
+          "from": "fact_weather",
+          "to": "dim_city",
+          "on": "`fact_weather`.`city_id` = `dim_city`.`city_id`",
+          "cardinality": "CARDINALITY_MANY_TO_ONE"
+        }
+      ]
     }
   ],
   "pages": [
@@ -482,20 +758,20 @@
     },
     {
       "name": "1691b9a1",
-      "displayName": "City profiles",
+      "displayName": "Demo 2",
       "layout": [
         {
           "widget": {
-            "name": "b35eccd7",
+            "name": "989bce4a",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ed6c615e",
+                  "datasetName": "df801194",
                   "fields": [
                     {
-                      "name": "sum(total_measurements_recorded)",
-                      "expression": "SUM(`total_measurements_recorded`)"
+                      "name": "measure(rainy_records_count)",
+                      "expression": "MEASURE(`rainy_records_count`)"
                     }
                   ],
                   "disaggregated": false
@@ -503,11 +779,15 @@
               }
             ],
             "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Rainy Records Count"
+              },
               "version": 2,
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(total_measurements_recorded)"
+                  "fieldName": "measure(rainy_records_count)"
                 }
               },
               "data": {
@@ -518,30 +798,192 @@
           "position": {
             "x": 0,
             "y": 0,
-            "width": 3,
-            "height": 5
+            "width": 2,
+            "height": 3
           }
         },
         {
           "widget": {
-            "name": "60d2c640",
+            "name": "c0558c09",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ed6c615e",
+                  "datasetName": "df801194",
                   "fields": [
+                    {
+                      "name": "daily(date_id)",
+                      "expression": "DATE_TRUNC(\"DAY\", `date_id`)"
+                    },
+                    {
+                      "name": "sum(snowfall_sum)",
+                      "expression": "SUM(`snowfall_sum`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Snowfall Over Time"
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(date_id)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(snowfall_sum)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 0,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "b6fa730c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "df801194",
+                  "fields": [
+                    {
+                      "name": "measure(snowy_records_count)",
+                      "expression": "MEASURE(`snowy_records_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Snowy Records Count"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(snowy_records_count)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "4c333b92",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "df801194",
+                  "fields": [
+                    {
+                      "name": "daily(date_id)",
+                      "expression": "DATE_TRUNC(\"DAY\", `date_id`)"
+                    },
+                    {
+                      "name": "sum(rain_sum)",
+                      "expression": "SUM(`rain_sum`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Rainfall Over Time"
+              },
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(date_id)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(rain_sum)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": false
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 0,
+            "width": 4,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "6f97be9c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "city_avg_rainfall",
+                  "fields": [
+                    {
+                      "name": "avg_rain_sum",
+                      "expression": "`avg_rain_sum`"
+                    },
+                    {
+                      "name": "lat",
+                      "expression": "`lat`"
+                    },
+                    {
+                      "name": "lon",
+                      "expression": "`lon`"
+                    },
                     {
                       "name": "city",
                       "expression": "`city`"
-                    },
-                    {
-                      "name": "all_time_high_temp",
-                      "expression": "`all_time_high_temp`"
-                    },
-                    {
-                      "name": "all_time_low_temp",
-                      "expression": "`all_time_low_temp`"
                     }
                   ],
                   "disaggregated": true
@@ -549,27 +991,267 @@
               }
             ],
             "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Avg Rainfall by City"
+              },
+              "version": 2,
+              "widgetType": "symbol-map",
+              "encodings": {
+                "coordinates": {
+                  "coordinateType": "longitude-latitude",
+                  "latitude": {
+                    "fieldName": "lat"
+                  },
+                  "longitude": {
+                    "fieldName": "lon"
+                  }
+                },
+                "color": {
+                  "fieldName": "avg_rain_sum",
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "scheme",
+                      "scheme": "blues"
+                    }
+                  }
+                },
+                "extra": [
+                  {
+                    "fieldName": "city"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "da8cc7f5_bar",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "dim_city__city",
+                      "expression": "`dim_city`.`city`"
+                    },
+                    {
+                      "name": "sum(fact_rainfall__rain_sum)",
+                      "expression": "SUM(`fact_rainfall`.`rain_sum`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "SUM(`fact_rainfall`.`rain_sum`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Total Rainfall by City"
+              },
               "version": 3,
               "widgetType": "bar",
               "encodings": {
                 "x": {
-                  "fieldName": "city",
+                  "fieldName": "dim_city__city",
                   "scale": {
-                    "type": "categorical"
+                    "type": "categorical",
+                    "sort": {
+                      "by": "measure-reversed",
+                      "measure": {
+                        "fieldName": "sum(fact_rainfall__rain_sum)"
+                      }
+                    }
                   }
                 },
                 "y": {
+                  "fieldName": "sum(fact_rainfall__rain_sum)",
                   "scale": {
                     "type": "quantitative"
-                  },
+                  }
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 3,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "cfa02e24",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
                   "fields": [
                     {
-                      "fieldName": "all_time_high_temp"
+                      "name": "measure(fact_weather__hot_days_count)",
+                      "expression": "MEASURE(`fact_weather`.`hot_days_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Count of Records with Hot Days",
+                  "fields": []
+                }
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(fact_weather__hot_days_count)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 1,
+            "y": 9,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "7a166e19",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "measure(fact_weather__mild_days_count)",
+                      "expression": "MEASURE(`fact_weather`.`mild_days_count`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": "Count of Records with Mild Days"
+              },
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(fact_weather__mild_days_count)"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 7,
+            "y": 9,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "c51edb44",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "fields": [
+                    {
+                      "name": "sum(City_Hottest_Days__win_percentage)",
+                      "expression": "SUM(`City_Hottest_Days`.`win_percentage`)"
                     },
                     {
-                      "fieldName": "all_time_low_temp"
+                      "name": "City_Hottest_Days__city",
+                      "expression": "`City_Hottest_Days`.`city`"
                     }
-                  ]
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "frame": {
+                "showTitle": true,
+                "title": {
+                  "value": "Hottest City — Share of Days",
+                  "fields": []
+                }
+              },
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(City_Hottest_Days__win_percentage)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "City_Hottest_Days__city",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Kraków",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 2
+                        }
+                      },
+                      {
+                        "value": "Wrocław",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 7
+                        }
+                      },
+                      {
+                        "value": "Szczecin",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 5
+                        }
+                      }
+                    ]
+                  }
                 }
               },
               "data": {
@@ -579,54 +1261,69 @@
           },
           "position": {
             "x": 0,
-            "y": 5,
+            "y": 11,
             "width": 6,
             "height": 6
           }
         },
         {
           "widget": {
-            "name": "d3327f59",
+            "name": "e61b0413",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ed6c615e",
                   "fields": [
                     {
-                      "name": "city",
-                      "expression": "`city`"
+                      "name": "dim_city__city",
+                      "expression": "`dim_city`.`city`"
                     },
                     {
-                      "name": "historical_avg_temp",
-                      "expression": "`historical_avg_temp`"
+                      "name": "avg(fact_weather__temperature)",
+                      "expression": "AVG(`fact_weather`.`temperature`)"
                     }
                   ],
-                  "disaggregated": true
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "AVG(`fact_weather`.`temperature`)"
+                    }
+                  ]
                 }
               }
             ],
             "spec": {
-              "version": 3,
               "frame": {
-                "showTitle": false
+                "showTitle": true,
+                "title": {
+                  "value": "Avg Temperature by City",
+                  "fields": []
+                }
               },
+              "version": 3,
               "widgetType": "bar",
               "encodings": {
                 "x": {
-                  "fieldName": "city",
+                  "fieldName": "dim_city__city",
                   "scale": {
-                    "type": "categorical"
+                    "type": "categorical",
+                    "sort": {
+                      "by": "measure-reversed",
+                      "measure": {
+                        "fieldName": "avg(fact_weather__temperature)"
+                      }
+                    }
                   }
                 },
                 "y": {
-                  "fieldName": "historical_avg_temp",
+                  "fieldName": "avg(fact_weather__temperature)",
                   "scale": {
                     "type": "quantitative"
                   }
                 },
                 "color": {
-                  "fieldName": "city",
+                  "fieldName": "dim_city__city",
                   "scale": {
                     "type": "categorical"
                   }
@@ -639,47 +1336,30 @@
           },
           "position": {
             "x": 6,
-            "y": 5,
+            "y": 11,
             "width": 6,
             "height": 6
           }
         },
         {
           "widget": {
-            "name": "16606779",
+            "name": "e9dcdbb1",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "ed6c615e",
                   "fields": [
                     {
-                      "name": "city",
-                      "expression": "`city`"
+                      "name": "dim_city__city",
+                      "expression": "`dim_city`.`city`"
                     },
                     {
-                      "name": "total_measurements_recorded",
-                      "expression": "`total_measurements_recorded`"
+                      "name": "daily(fact_weather__date_id)",
+                      "expression": "DATE_TRUNC(\"DAY\", `fact_weather`.`date_id`)"
                     },
                     {
-                      "name": "data_collected_since",
-                      "expression": "`data_collected_since`"
-                    },
-                    {
-                      "name": "historical_avg_temp",
-                      "expression": "`historical_avg_temp`"
-                    },
-                    {
-                      "name": "all_time_high_temp",
-                      "expression": "`all_time_high_temp`"
-                    },
-                    {
-                      "name": "all_time_low_temp",
-                      "expression": "`all_time_low_temp`"
-                    },
-                    {
-                      "name": "measure(count)",
-                      "expression": "MEASURE(`count`)"
+                      "name": "avg(fact_weather__temperature)",
+                      "expression": "AVG(`fact_weather`.`temperature`)"
                     }
                   ],
                   "disaggregated": false
@@ -687,32 +1367,34 @@
               }
             ],
             "spec": {
-              "version": 2,
-              "widgetType": "table",
+              "frame": {
+                "showTitle": true,
+                "title": "Temperature by City Over Time"
+              },
+              "version": 3,
+              "widgetType": "line",
               "encodings": {
-                "columns": [
-                  {
-                    "fieldName": "city"
-                  },
-                  {
-                    "fieldName": "total_measurements_recorded"
-                  },
-                  {
-                    "fieldName": "data_collected_since"
-                  },
-                  {
-                    "fieldName": "historical_avg_temp"
-                  },
-                  {
-                    "fieldName": "all_time_high_temp"
-                  },
-                  {
-                    "fieldName": "all_time_low_temp"
-                  },
-                  {
-                    "fieldName": "measure(count)"
+                "x": {
+                  "fieldName": "daily(fact_weather__date_id)",
+                  "scale": {
+                    "type": "temporal"
                   }
-                ]
+                },
+                "y": {
+                  "fieldName": "avg(fact_weather__temperature)",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "dim_city__city",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "label": {
+                  "show": false
+                }
               },
               "data": {
                 "queryName": "main_query"
@@ -720,20 +1402,15 @@
             }
           },
           "position": {
-            "x": 3,
-            "y": 0,
-            "width": 9,
+            "x": 0,
+            "y": 17,
+            "width": 12,
             "height": 5
           }
         }
       ],
       "pageType": "PAGE_TYPE_CANVAS",
       "layoutVersion": "GRID_V1"
-    },
-    {
-      "name": "6881e7da",
-      "displayName": "Untitled page",
-      "pageType": "PAGE_TYPE_CANVAS"
     }
   ],
   "uiSettings": {
